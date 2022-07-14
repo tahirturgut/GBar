@@ -64,6 +64,12 @@ public class PathUtils {
 			path.add("/source/");
 			path.add("/tests/");
 
+		} else if (projectName.equals("VUL4J")) {
+			path.add("/target/classes/");
+			path.add("/target/test-classes/");
+			path.add("/src/main/java/");
+			path.add("/src/test/java/");
+
 		} else if (projectName.equals("Closure")) {
 			path.add("/build/classes/");
 			path.add("/build/test/");
@@ -88,7 +94,7 @@ public class PathUtils {
 	public static String getJunitPath() {
 		return System.getProperty("user.dir")+"/target/dependency/junit-4.12.jar";
 	}
-	
+
 	private static String getHamcrestPath() {
 		return System.getProperty("user.dir")+"/target/dependency/hamcrest-all-1.3.jar";
 	}
@@ -105,7 +111,7 @@ public class PathUtils {
 		path += "\"";
 		return path;
 	}
-	
+
 	public static String buildTestClassPath(String classPath, String testClassPath) {
 		String path = "\"";
 		path += classPath;
@@ -114,12 +120,12 @@ public class PathUtils {
 		path += System.getProperty("path.separator");
 		path += JunitRunner.class.getProtectionDomain().getCodeSource().getLocation().getFile();
 		path += System.getProperty("path.separator");
-	    path += getJunitPath();
-	    path += System.getProperty("path.separator");
-	    path += getHamcrestPath();
-	    path += System.getProperty("path.separator");
+		path += getJunitPath();
+		path += System.getProperty("path.separator");
+		path += getHamcrestPath();
+		path += System.getProperty("path.separator");
 		path += "\"";
 		return path;
-    }
+	}
 
 }
