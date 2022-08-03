@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import edu.lu.uni.serval.tbar.TBarFixer;
 import edu.lu.uni.serval.tbar.TBarFixer.Granularity;
-import edu.lu.uni.serval.tbar.config.Configuration;
+import edu.lu.uni.serval.config.Configuration;
 
 /**
  * Fix bugs with the known bug positions.

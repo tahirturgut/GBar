@@ -8,7 +8,7 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
 
-import edu.lu.uni.serval.tbar.config.Configuration;
+import edu.lu.uni.serval.config.Configuration;
 
 public class FileUtils {
 

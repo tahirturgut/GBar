@@ -28,9 +28,9 @@ import edu.lu.uni.serval.faultlocalization.Metrics.Metric;
  * @author kui.liu
  *
  */
-public class GZoltarFaultLoclaization {
+public class GZoltarFaultLocalization {
 	
-	private static Logger logger = LoggerFactory.getLogger(GZoltarFaultLoclaization.class);
+	private static Logger logger = LoggerFactory.getLogger(GZoltarFaultLocalization.class);
 	
 	public String srcPath;
 	

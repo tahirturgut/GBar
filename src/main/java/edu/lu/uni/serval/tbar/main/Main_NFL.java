@@ -4,7 +4,7 @@ import java.io.File;
 
 import edu.lu.uni.serval.tbar.AbstractFixer;
 import edu.lu.uni.serval.tbar.TBarFixer_NFL;
-import edu.lu.uni.serval.tbar.config.Configuration;
+import edu.lu.uni.serval.config.Configuration;
 
 /**
  * Fix bugs with Fault Localization results.

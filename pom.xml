@@ -87,6 +87,20 @@
 			<artifactId>json</artifactId>
 			<version>20090211</version>
 		</dependency>
+
+		<dependency>
+			<groupId>gzoltar</groupId>
+			<artifactId>com.gzoltar</artifactId>
+			<version>0.1.1</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/lib/com.gzoltar-0.1.1-jdk7.jar</systemPath>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>11.0.2</version>
+		</dependency>
 	</dependencies>
 
 	<build>

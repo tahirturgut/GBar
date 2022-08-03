@@ -15,7 +15,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import edu.lu.uni.serval.tbar.config.Configuration;
+import edu.lu.uni.serval.config.Configuration;
 
 public class ShellUtils {
 

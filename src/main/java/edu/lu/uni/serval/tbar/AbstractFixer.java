@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import edu.lu.uni.serval.faultlocalization.FL;
+import edu.lu.uni.serval.faultlocalization.SuspiciousCode;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +18,7 @@ import org.slf4j.LoggerFactory;
 import edu.lu.uni.serval.entity.Pair;
 import edu.lu.uni.serval.jdt.tree.ITree;
 import edu.lu.uni.serval.tbar.code.analyser.JavaCodeFileParser;
-import edu.lu.uni.serval.tbar.config.Configuration;
+import edu.lu.uni.serval.config.Configuration;
 import edu.lu.uni.serval.tbar.context.Dictionary;
 import edu.lu.uni.serval.tbar.dataprepare.DataPreparer;
 import edu.lu.uni.serval.tbar.info.Patch;
@@ -162,26 +164,44 @@ public abstract class AbstractFixer implements IFixer {
 			System.out.println("Cannot find the suspicious code position file." + suspiciousFile.getPath());
 			suspiciousFile = new File(suspiciousFilePath + "/" + this.buggyProject + "/All.txt");
 		}
-		if (!suspiciousFile.exists()) return null;
+
 		List<SuspiciousPosition> suspiciousCodeList = new ArrayList<>();
-		try {
-			FileReader fileReader = new FileReader(suspiciousFile);
-            BufferedReader reader = new BufferedReader(fileReader);
-            String line = null;
-            while ((line = reader.readLine()) != null) {
-            	String[] elements = line.split("@");
-            	SuspiciousPosition sp = new SuspiciousPosition();
-            	sp.classPath = elements[0];
-            	sp.lineNumber = Integer.valueOf(elements[1]);
-            	suspiciousCodeList.add(sp);
-            }
-            reader.close();
-            fileReader.close();
-        }catch (Exception e){
-        	e.printStackTrace();
-        	log.debug("Reloading Localization Result...");
-            return null;
-        }
+
+		if (!suspiciousFile.exists()) {
+			// Localize suspicious code positions.
+			FL fl = new FL();
+			fl.dp = this.dp;
+			fl.locateSuspiciousCode(this.path, this.buggyProject, suspiciousFilePath + "/", this.metric);
+
+			List<SuspiciousCode> suspStmts = fl.suspStmts;
+			for (int index = 0, size = suspStmts.size(); index < size; index++) {
+				SuspiciousCode candidate = suspStmts.get(index);
+				SuspiciousPosition sp = new SuspiciousPosition();
+				sp.classPath = candidate.getClassName();
+				sp.lineNumber = candidate.lineNumber;
+				suspiciousCodeList.add(sp);
+			}
+		}
+		else {
+			try {
+				FileReader fileReader = new FileReader(suspiciousFile);
+				BufferedReader reader = new BufferedReader(fileReader);
+				String line = null;
+				while ((line = reader.readLine()) != null) {
+					String[] elements = line.split("@");
+					SuspiciousPosition sp = new SuspiciousPosition();
+					sp.classPath = elements[0];
+					sp.lineNumber = Integer.valueOf(elements[1]);
+					suspiciousCodeList.add(sp);
+				}
+				reader.close();
+				fileReader.close();
+			}catch (Exception e){
+				e.printStackTrace();
+				log.debug("Reloading Localization Result...");
+				return null;
+			}
+		}
 		if (suspiciousCodeList.isEmpty()) return null;
 		return suspiciousCodeList;
 	}

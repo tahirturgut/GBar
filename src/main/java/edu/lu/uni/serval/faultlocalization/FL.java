@@ -6,14 +6,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import edu.lu.uni.serval.config.Configuration;
-import edu.lu.uni.serval.dataprepare.DataPreparer;
+import edu.lu.uni.serval.tbar.dataprepare.DataPreparer;
 import edu.lu.uni.serval.faultlocalization.Metrics.Metric;
+import edu.lu.uni.serval.config.Configuration;
 import edu.lu.uni.serval.utils.FileHelper;
 import edu.lu.uni.serval.utils.PathUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FL {
 
@@ -65,7 +64,7 @@ public class FL {
         }
         if (!dp.validPaths) return;
 
-        GZoltarFaultLoclaization gzfl = new GZoltarFaultLoclaization();
+        GZoltarFaultLocalization gzfl = new GZoltarFaultLocalization();
         gzfl.threshold = 0.0;
         gzfl.maxSuspCandidates = -1;
         gzfl.srcPath = path + buggyProject + PathUtils.getSrcPath(buggyProject).get(2);

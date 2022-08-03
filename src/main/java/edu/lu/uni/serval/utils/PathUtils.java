@@ -165,6 +165,11 @@ public class PathUtils {
 				path.add("/src/main/java/");
 				path.add("/src/test/java/");
 			}
+		} else if (projectName.equals("VUL4J")) {
+			path.add("/target/classes/");
+			path.add("/target/test-classes/");
+			path.add("/src/main/java/");
+			path.add("/src/test/java/");
 		}
 
 		return path;
