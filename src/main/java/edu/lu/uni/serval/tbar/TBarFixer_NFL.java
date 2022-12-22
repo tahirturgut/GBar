@@ -203,7 +203,7 @@ public class TBarFixer_NFL extends TBarFixer {
 		List<SuspiciousPosition> suspiciousCodeList = new ArrayList<>();
 		try {
 			List<String> allTestCases = new ArrayList<>();
-			BufferedReader reader = new BufferedReader(new FileReader(suspiciousFile.getPath() + "/" + this.buggyProject + "/sfl_tests.csv"));
+			BufferedReader reader = new BufferedReader(new FileReader(suspiciousFile.getPath() + "/" + this.buggyProject + "/sfl/txt/tests.csv"));
 			String line = reader.readLine();
 			while ((line = reader.readLine()) != null) {
 				String testCase = line.substring(0, line.indexOf(","));
@@ -211,7 +211,7 @@ public class TBarFixer_NFL extends TBarFixer {
 			}
 			reader.close();
 			
-			reader = new BufferedReader(new FileReader(suspiciousFile.getPath() + "/" + this.buggyProject + "/sfl_ochiai_ranking.csv"));
+			reader = new BufferedReader(new FileReader(suspiciousFile.getPath() + "/" + this.buggyProject + "/sfl/txt/ochiai.ranking.csv"));
 			line = reader.readLine();
 			while ((line = reader.readLine()) != null) {
 				int dollarIndex = line.indexOf("$");

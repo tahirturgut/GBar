@@ -3,16 +3,16 @@ package edu.lu.uni.serval.tbar;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import edu.lu.uni.serval.config.Configuration;
 import edu.lu.uni.serval.faultlocalization.FL;
 import edu.lu.uni.serval.faultlocalization.SuspiciousCode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import edu.lu.uni.serval.jdt.tree.ITree;
-import edu.lu.uni.serval.config.Configuration;
 import edu.lu.uni.serval.tbar.context.ContextReader;
 import edu.lu.uni.serval.tbar.fixpatterns.ClassCastChecker;
 import edu.lu.uni.serval.tbar.fixpatterns.ConditionalExpressionMutator;
@@ -33,7 +33,10 @@ import edu.lu.uni.serval.tbar.fixtemplate.FixTemplate;
 import edu.lu.uni.serval.tbar.info.Patch;
 import edu.lu.uni.serval.tbar.utils.Checker;
 import edu.lu.uni.serval.tbar.utils.FileHelper;
+import edu.lu.uni.serval.tbar.utils.ShellUtils;
 import edu.lu.uni.serval.tbar.utils.SuspiciousPosition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 
@@ -76,7 +79,14 @@ public class TBarFixer extends AbstractFixer {
 			List<String> buggyFileList = readKnownFileLevelBugPositions();
 			suspiciousCodeList = readSuspiciousCodeFromFile(buggyFileList);
 		} else {
-			suspiciousCodeList = readSuspiciousCodeFromFile();
+			try {
+				if (!new File(suspCodePosFile,   "/" + this.buggyProject + "/sfl/txt/ochiai.ranking.csv").exists()) {
+					String result = ShellUtils.shellGZoltarRun(Arrays.asList("sh runGZoltar.sh " + projectName + " " + bugId), buggyProject);
+				}
+				suspiciousCodeList = readSuspiciousCodeFromFile();
+			} catch (IOException e){
+				e.printStackTrace();
+			}
 		}
 		
 		if (suspiciousCodeList == null) return;
@@ -230,52 +240,43 @@ public class TBarFixer extends AbstractFixer {
 		} else {
 			suspiciousFilePath = this.suspCodePosFile.getPath();
 		}
-		suspiciousFile = new File(suspiciousFilePath + "/" + this.buggyProject + "/" + this.metric + ".txt");
-		if (!suspiciousFile.exists()) {
-			System.out.println("Cannot find the suspicious code position file." + suspiciousFile.getPath());
-			suspiciousFile = new File(suspiciousFilePath + "/" + this.buggyProject + "/" + this.metric.toLowerCase() + ".txt");
+
+		if (suspiciousFile == null || !suspiciousFile.exists()) {
+			//System.out.println("Cannot find the suspicious code position file." + suspiciousFile.getPath());
+			suspiciousFile = new File(suspiciousFilePath + "/" + this.buggyProject + "/" + this.metric + ".txt");
 		}
 		if (!suspiciousFile.exists()) {
 			System.out.println("Cannot find the suspicious code position file." + suspiciousFile.getPath());
 			suspiciousFile = new File(suspiciousFilePath + "/" + this.buggyProject + "/All.txt");
 		}
+		if (!suspiciousFile.exists()) {
+			System.out.println("Cannot find the suspicious code position file." + suspiciousFile.getPath());
+			suspiciousFile = new File(suspiciousFilePath + "/" + this.buggyProject + "/" + this.metric + ".txt");
+		}
 
 		List<SuspiciousPosition> suspiciousCodeList = new ArrayList<>();
 
-		if (!suspiciousFile.exists()) {
+		if (!suspiciousFile.exists() || suspiciousFile.length() == 0) {
 			// Localize suspicious code positions.
 			FL fl = new FL();
 			fl.dp = this.dp;
-			fl.locateSuspiciousCode(this.path, this.buggyProject, suspiciousFilePath + "/", this.metric);
+			//fl.locateSuspiciousCode(this.path, this.buggyProject, suspiciousFilePath + "/", this.metric);
 
 			List<SuspiciousCode> suspStmts = fl.suspStmts;
-			for (int index = 0, size = suspStmts.size(); index < size; index++) {
-				SuspiciousCode candidate = suspStmts.get(index);
-				SuspiciousPosition sp = new SuspiciousPosition();
-				sp.classPath = candidate.getClassName();
-				sp.lineNumber = candidate.lineNumber;
-				suspiciousCodeList.add(sp);
+			if (suspStmts != null) {
+				for (SuspiciousCode candidate : suspStmts) {
+					SuspiciousPosition sp = new SuspiciousPosition();
+					sp.classPath = candidate.getClassName();
+					sp.lineNumber = candidate.lineNumber;
+					suspiciousCodeList.add(sp);
+				}
+			} else {
+				parseGZoltarResults(suspiciousFilePath);
+				ochiaiReader(suspiciousFile, suspiciousCodeList);
 			}
 		}
 		else {
-			try {
-				FileReader fileReader = new FileReader(suspiciousFile);
-				BufferedReader reader = new BufferedReader(fileReader);
-				String line = null;
-				while ((line = reader.readLine()) != null) {
-					String[] elements = line.split("@");
-					SuspiciousPosition sp = new SuspiciousPosition();
-					sp.classPath = elements[0];
-					sp.lineNumber = Integer.valueOf(elements[1]);
-					suspiciousCodeList.add(sp);
-				}
-				reader.close();
-				fileReader.close();
-			}catch (Exception e){
-				e.printStackTrace();
-				log.debug("Reloading Localization Result...");
-				return null;
-			}
+			ochiaiReader(suspiciousFile, suspiciousCodeList);
 		}
 		if (suspiciousCodeList.isEmpty()) return null;
 		return suspiciousCodeList;
@@ -537,4 +538,88 @@ public class TBarFixer extends AbstractFixer {
 		return nodeTypes;
 	}
 
+	public void ochiaiReader(File suspiciousFile, List<SuspiciousPosition> suspiciousCodeList) {
+		try {
+			FileReader fileReader = new FileReader(suspiciousFile);
+			BufferedReader reader = new BufferedReader(fileReader);
+			String line = null;
+			while ((line = reader.readLine()) != null) {
+				String[] elements = line.split("@");
+				SuspiciousPosition sp = new SuspiciousPosition();
+				sp.classPath = elements[0];
+				sp.lineNumber = Integer.valueOf(elements[1]);
+				suspiciousCodeList.add(sp);
+			}
+			reader.close();
+			fileReader.close();
+		} catch (Exception e){
+			e.printStackTrace();
+			log.debug("Reloading Localization Result...");
+		}
+	}
+
+	public void parseGZoltarResults(String suspiciousCodePositions) {
+		File suspCodePosFile = new File(suspiciousCodePositions);
+		if (!suspCodePosFile.exists()) {
+			suspCodePosFile.mkdir();
+		}
+
+		File buggyProjectDir = new File(suspCodePosFile,   "/" + this.buggyProject);
+		buggyProjectDir.mkdir();
+
+		PrintWriter out;
+		BufferedReader br = null;
+
+		// Prepare for output.
+		try {
+			out = new PrintWriter(new File(buggyProjectDir, "Ochiai.txt"));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return;
+		}
+
+		int lineCounter = 0;
+		Double score = 0.0d;
+
+		try {
+			br = new BufferedReader(new FileReader(new File(suspCodePosFile,   "/" + this.buggyProject + "/sfl/txt/ochiai.ranking.csv")));
+			String line;
+			while ((line = br.readLine()) != null) {
+				if (line.toLowerCase().contains("test") || line.contains("name;suspiciousness_value")) {
+					continue;
+				}
+
+				String[] tokens = line.split("[$#]");
+				String fileName = tokens[0] + "." + tokens[1];
+				String lineNum = line.substring(line.lastIndexOf(':') + 1, line.lastIndexOf(';'));
+				String scoreStr = line.substring(line.lastIndexOf(';') + 1);
+
+				Double currentScore = Double.valueOf(scoreStr);
+				lineCounter++;
+
+				if (currentScore.compareTo(0.0d) <= 0) {
+					break;
+				}
+				if (score.compareTo(currentScore) > 0 && lineCounter >= 100) {
+					break;
+				}
+
+				score = currentScore;
+
+				StringBuilder sb =
+					new StringBuilder(fileName).append('@').append(lineNum).append('@').append(scoreStr);
+				out.println(sb.toString());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		try {
+			br.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		out.close();
+	}
 }

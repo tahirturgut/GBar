@@ -15,8 +15,8 @@ import edu.lu.uni.serval.config.Configuration;
 public class Main {
 	
 	public static void main(String[] args) {
-		if (args.length != 3) {
-			System.err.println("Arguments: \n" 
+/*		if (args.length != 3) {
+			System.err.println("Arguments: \n"
 					+ "\t<Bug_Data_Path>: the directory of checking out Defects4J bugs. \n"
 					+ "\t<Bug_ID>: bug id of each Defects4J bug, such as Chart_1. \n"
 //					+ "\t<Suspicious_Code_Positions_File_Path>: \n"
@@ -24,11 +24,14 @@ public class Main {
 					+ "\t<defects4j_Home>: the directory of defects4j git repository.\n");
 			System.exit(0);
 		}
-		String bugDataPath = args[0];// "../Defects4JData/"
-		String bugId = args[1]; // "Chart_1"
-		String defects4jHome = args[2]; // "../defects4j/"
-		System.out.println(bugId);
-		fixBug(bugDataPath, defects4jHome, bugId);
+ */
+		for (int i = 1; i <= 1; i++) {
+			String bugDataPath = "/Users/turgutt/GBar/D4J/projects/";
+			String bugId = "VUL4J_" + i; // "Chart_1"
+			String defects4jHome = "/Users/turgutt/vul4j/"; // "../defects4j/"
+			System.out.println(bugId);
+			fixBug(bugDataPath, defects4jHome, bugId);
+		}
 	}
 
 	public static void fixBug(String bugDataPath, String defects4jHome, String bugIdStr) {
