@@ -19,6 +19,46 @@ import edu.lu.uni.serval.config.Configuration;
 
 public class ShellUtils {
 
+    public static String shellGZoltarRun(List<String> asList, String buggyProject) throws IOException {
+        String fileName;
+        String cmd;
+        if (System.getProperty("os.name").toLowerCase().startsWith("win")){
+            fileName = Configuration.TEMP_FILES_PATH + buggyProject + ".bat";
+            cmd = Configuration.TEMP_FILES_PATH + buggyProject + ".bat";
+        }
+        else {
+            fileName = Configuration.TEMP_FILES_PATH + buggyProject + ".sh";
+            cmd = "bash " + fileName;
+        }
+        File batFile = new File(fileName);
+        if (!batFile.exists()){
+            if (!batFile.getParentFile().exists()) {
+                batFile.getParentFile().mkdirs();
+            }
+            boolean result = batFile.createNewFile();
+            if (!result){
+                throw new IOException("Cannot Create bat file:" + fileName);
+            }
+        }
+        FileOutputStream outputStream = null;
+        try {
+            outputStream = new FileOutputStream(batFile);
+            for (String arg: asList){
+                outputStream.write(arg.getBytes());
+            }
+        } catch (IOException e){
+            if (outputStream != null){
+                outputStream.close();
+            }
+        }
+        batFile.deleteOnExit();
+
+        Process process= Runtime.getRuntime().exec(cmd);
+        String results = ShellUtils.getShellOut(process, 0);
+        batFile.delete();
+        return results;
+    }
+
 	public static String shellRun(List<String> asList, String buggyProject, int type) throws IOException {
 		String fileName;
         String cmd;

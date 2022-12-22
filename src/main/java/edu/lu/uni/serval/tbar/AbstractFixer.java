@@ -42,8 +42,10 @@ public abstract class AbstractFixer implements IFixer {
 	
 	public String metric = "Ochiai";          // Fault localization metric.
 	protected String path = "";
-	protected String buggyProject = "";     // The buggy project name.
-	protected String defects4jPath;         // The path of local installed defects4j.
+	protected String buggyProject = "";     // The buggy project name (full).
+	protected String projectName = "";     	// The buggy project name.
+	protected int bugId;	     			// The project number.
+	protected String databasePath;         // The path of local installed defects4j.
 	public int minErrorTest;                // Number of failed test cases before fixing.
 	public int minErrorTest_;
 	protected int minErrorTestAfterFix = 0; // Number of failed test cases after fixing
@@ -70,24 +72,26 @@ public abstract class AbstractFixer implements IFixer {
 	
 	public boolean isTestFixPatterns = false;
 	
-	public AbstractFixer(String path, String projectName, int bugId, String defects4jPath) {
+	public AbstractFixer(String path, String projectName, int bugId, String databasePath) {
 		this.path = path;
+		this.projectName = projectName;
+		this.bugId = bugId;
 		this.buggyProject = projectName + "_" + bugId;
 		fullBuggyProjectPath = path + buggyProject;
-		this.defects4jPath = defects4jPath;
+		this.databasePath = databasePath;
 //		int compileResult = TestUtils.compileProjectWithDefects4j(fullBuggyProjectPath, this.defects4jPath);
 //      if (compileResult == 1) {
 //      	log.debug(buggyProject + " ---Fixer: fix fail because of compile fail! ");
 //      }
 		
-		TestUtils.checkout(this.fullBuggyProjectPath);
+		TestUtils.checkout(path, projectName, bugId, databasePath);
 //		if (FileHelper.getAllFiles(fullBuggyProjectPath + PathUtils.getSrcPath(buggyProject).get(0), ".class").isEmpty()) {
-			TestUtils.compileProjectWithDefects4j(fullBuggyProjectPath, defects4jPath);
+			TestUtils.compileProject(fullBuggyProjectPath, databasePath);
 //		}
-		minErrorTest = TestUtils.getFailTestNumInProject(fullBuggyProjectPath, defects4jPath, failedTestStrList);
+		minErrorTest = TestUtils.getFailTestNumInProject(fullBuggyProjectPath, databasePath, failedTestStrList);
 		if (minErrorTest == Integer.MAX_VALUE) {
-			TestUtils.compileProjectWithDefects4j(fullBuggyProjectPath, defects4jPath);
-			minErrorTest = TestUtils.getFailTestNumInProject(fullBuggyProjectPath, defects4jPath, failedTestStrList);
+			TestUtils.compileProject(fullBuggyProjectPath, databasePath);
+			minErrorTest = TestUtils.getFailTestNumInProject(fullBuggyProjectPath, databasePath, failedTestStrList);
 		}
 		log.info(buggyProject + " Failed Tests: " + this.minErrorTest);
 		minErrorTest_ = minErrorTest;
@@ -288,7 +292,7 @@ public abstract class AbstractFixer implements IFixer {
 				continue;
 			}
 			if (!scn.targetClassFile.exists()) { // fail to compile
-				int results = (this.buggyProject.startsWith("Mockito") || this.buggyProject.startsWith("Closure") || this.buggyProject.startsWith("Time")) ? TestUtils.compileProjectWithDefects4j(fullBuggyProjectPath, defects4jPath) : 1;
+				int results = (this.buggyProject.startsWith("Mockito") || this.buggyProject.startsWith("Closure") || this.buggyProject.startsWith("Time") || this.buggyProject.startsWith("VUL4J")) ? TestUtils.compileProject(fullBuggyProjectPath, databasePath) : 1;
 				if (results == 1) {
 					log.debug(buggyProject + " ---Fixer: fix fail because of failed compiling! ");
 					continue;
@@ -329,7 +333,7 @@ public abstract class AbstractFixer implements IFixer {
 			}
 
 			List<String> failedTestsAfterFix = new ArrayList<>();
-			int errorTestAfterFix = TestUtils.getFailTestNumInProject(fullBuggyProjectPath, this.defects4jPath,
+			int errorTestAfterFix = TestUtils.getFailTestNumInProject(fullBuggyProjectPath, this.databasePath,
 					failedTestsAfterFix);
 			failedTestsAfterFix.removeAll(this.fakeFailedTestCasesList);
 			

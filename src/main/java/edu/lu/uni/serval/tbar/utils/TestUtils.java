@@ -3,6 +3,7 @@ package edu.lu.uni.serval.tbar.utils;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -76,8 +77,14 @@ public class TestUtils {
         }
     }
 
-    public static int compileProjectWithDefects4j(String projectName, String defects4jPath) {
-        String compileResults = getDefects4jResult(projectName, defects4jPath, "compile");
+    public static int compileProject(String projectName, String defects4jPath) {
+        String compileResults;
+        if (Objects.equals("VUL4J", projectName.split("_")[0].substring(projectName.split("_")[0].length() - 5))) {
+            compileResults = getVul4jResult(projectName, defects4jPath, "compile");
+            compileResults = (compileResults.isEmpty()) ? "Compiling...OK\nCompiled...OK" : compileResults;
+        } else {
+            compileResults = getDefects4jResult(projectName, defects4jPath, "compile");
+        }
         String[] lines = compileResults.split("\n");
         if (lines.length != 2) return 1;
         for (String lineString: lines){
@@ -98,11 +105,11 @@ public class TestUtils {
         }
     }
 
-    private static String getVul4jResult(String projectName, String defects4jPath, String cmdType) {
+    private static String getVul4jResult(String projectName, String vul4jPath, String cmdType) {
         try {
             String buggyProject = projectName.substring(projectName.lastIndexOf("/") + 1);
             //which java\njava -version\n
-            String result = ShellUtils.shellRun(Arrays.asList("cd " + projectName + "\n", "python " + defects4jPath + "vul4j/main.py " + cmdType + " -d /tmp/vul4j/VUL4J-10\n"), buggyProject, cmdType.equals("test") ? 2 : 1);//"defects4j " + cmdType + "\n"));//
+            String result = ShellUtils.shellRun(Arrays.asList("cd " + projectName + "\n", "python " + vul4jPath + "vul4j/main.py " + cmdType + " -d /tmp/vul4j/VUL4J-10\n"), buggyProject, cmdType.equals("test") ? 2 : 1);
             return result.trim();
         } catch (IOException e){
             e.printStackTrace();
@@ -128,10 +135,21 @@ public class TestUtils {
         }
     }
 
-    public static String checkout(String projectName) {
+    public static String checkout(String path, String projectName, int bugId, String databasePath) {
         try {
-            String buggyProject = projectName.substring(projectName.lastIndexOf("/") + 1);
-            return ShellUtils.shellRun(Arrays.asList("cd " + projectName + "\n", "git checkout -- ."), buggyProject, 1).trim();
+            String fullBuggyProjectName = projectName + "_" + bugId;
+            String fullBuggyProjectPath = path + fullBuggyProjectName;
+            String buggyProject = fullBuggyProjectPath.substring(fullBuggyProjectPath.lastIndexOf("/") + 1);
+            if(!projectName.equals("VUL4J")) {
+                return ShellUtils.shellRun(Arrays.asList("cd " + fullBuggyProjectPath + "\n", "git checkout -- ."), buggyProject, 1).trim();
+            } else {
+                String result = ShellUtils.shellRun(Arrays.asList(
+                        "cd " + fullBuggyProjectPath + "\n", "python " + databasePath + "vul4j/main.py checkout --id "
+                        + fullBuggyProjectName.replace('_', '-') + " -d /tmp/vul4j/VUL4J-10\n"),
+                    buggyProject,
+                    1);//"defects4j " + cmdType + "\n"));//
+                return result.trim();
+            }
         } catch (IOException e){
             return null;
         }

@@ -427,3 +427,4 @@ Time_24@src/main/java/org/joda/time/format/DateTimeParserBucket.java@352-354
 Time_25@src/main/java/org/joda/time/DateTimeZone.java@900
 Time_26@src/main/java/org/joda/time/chrono/ZonedChronology.java@436,448,460,467,481,528,540
 Time_27@src/main/java/org/joda/time/format/PeriodFormatterBuilder.java@801-803
+VUL4J_10@src/main/java/org/apache/commons/fileupload/disk/DiskFileItem.java@654,657,659,660,661,663,664,665,666,668,670,671
